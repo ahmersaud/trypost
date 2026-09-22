@@ -1,6 +1,22 @@
 # Caddy serves TryPost on your domain with automatic HTTPS (Let's Encrypt).
 # APP_DOMAIN is provided by the caddy service in compose.prod.yaml.
 # reverse_proxy transparently passes through WebSocket upgrades (Reverb on /app).
+
 {$APP_DOMAIN} {
-	reverse_proxy app:80
+
+	handle /privacy {
+		rewrite * /privacy.html
+		root * /srv/legal
+		file_server
+	}
+
+	handle /terms {
+		rewrite * /terms.html
+		root * /srv/legal
+		file_server
+	}
+
+	handle {
+		reverse_proxy app:80
+	}
 }

@@ -10,45 +10,46 @@
 
 services:
   app:
-    image: ghcr.io/trypostit/trypost:latest
+    image: trypost:local
     container_name: trypost
     restart: unless-stopped
     environment:
       # ===== Required =====
-      APP_NAME: TryPost
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_KEY: ""                       # <- run key:generate (see header) and paste here
-      APP_URL: http://localhost:8000    # <- your public URL, e.g. https://post.yourdomain.com
-      SELF_HOSTED: "true"
-      TRYPOST_TARGET: production
-
+      APP_NAME: "${APP_NAME}"
+      APP_ENV: "${APP_ENV}"
+      APP_DEBUG: "${APP_DEBUG}"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "${APP_URL}"
+      LEGAL_TERMS_URL: "${LEGAL_TERMS_URL}"
+      LEGAL_PRIVACY_URL: "${LEGAL_PRIVACY_URL}"
+      SELF_HOSTED: "${SELF_HOSTED}"
+      TRYPOST_TARGET: "${TRYPOST_TARGET}"
       # ===== Database (bundled postgres service below) =====
-      DB_CONNECTION: pgsql
-      DB_HOST: pgsql
-      DB_PORT: "5432"
-      DB_DATABASE: trypost
-      DB_USERNAME: trypost
-      DB_PASSWORD: trypost-password     # <- change me (must match POSTGRES_PASSWORD below)
+      DB_CONNECTION: "${DB_CONNECTION}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
 
       # ===== Redis / queue / cache / broadcasting =====
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      QUEUE_CONNECTION: redis
-      CACHE_STORE: redis
-      SESSION_DRIVER: database
-      BROADCAST_CONNECTION: reverb
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      QUEUE_CONNECTION: "${QUEUE_CONNECTION}"
+      CACHE_STORE: "${CACHE_STORE}"
+      SESSION_DRIVER: "${SESSION_DRIVER}"
+      BROADCAST_CONNECTION: "${BROADCAST_CONNECTION}"
 
       # ===== WebSockets (Reverb) =====
       # The published image bakes the client at localhost:8080. For a custom
       # domain, rebuild the image with --build-arg VITE_REVERB_HOST=<domain>
       # VITE_REVERB_PORT=443 VITE_REVERB_SCHEME=https.
-      REVERB_APP_ID: "1001"
-      REVERB_APP_KEY: trypost-reverb-key           # must match the key baked into the published image
-      REVERB_APP_SECRET: change-me-reverb-secret   # <- change me
-      REVERB_HOST: localhost
-      REVERB_PORT: "8080"
-      REVERB_SCHEME: http
+      REVERB_APP_ID: "${REVERB_APP_ID}"
+      REVERB_APP_KEY: "${REVERB_APP_KEY}"
+      REVERB_APP_SECRET: "${REVERB_APP_SECRET}"
+      REVERB_HOST: "${REVERB_HOST}"
+      REVERB_PORT: "${REVERB_PORT}"
+      REVERB_SCHEME: "${REVERB_SCHEME}"
 
       # ===== Passport (OAuth / API keys / MCP) =====
       # REQUIRED for any durable deploy (and always for multi-node / load
@@ -57,12 +58,12 @@ services:
       # invalidates every API/MCP token. Generate once:
       #   docker compose -f compose.prod.yaml run --rm app php artisan passport:keys --show
       # then paste the PEM contents here (use \n for newlines).
-      PASSPORT_PRIVATE_KEY: ""
-      PASSPORT_PUBLIC_KEY: ""
+      PASSPORT_PRIVATE_KEY: "${PASSPORT_PRIVATE_KEY}"
+      PASSPORT_PUBLIC_KEY: "${PASSPORT_PUBLIC_KEY}"
 
       # ===== Storage =====
       # Default: local disk, persisted in the "storage" volume below.
-      FILESYSTEM_DISK: public
+      FILESYSTEM_DISK: "${FILESYSTEM_DISK}"
       #
       # --- Cloudflare R2: set FILESYSTEM_DISK=r2 and fill these ---
       # R2_ACCESS_KEY_ID: ""
@@ -81,9 +82,10 @@ services:
       # ===== Mail =====
       # Defaults to "log" (emails written to the container log). Configure SMTP
       # for real password-reset / team-invite emails.
-      MAIL_MAILER: log
-      MAIL_FROM_ADDRESS: hello@example.com
-      MAIL_FROM_NAME: TryPost
+      MAIL_MAILER: "${MAIL_MAILER}"
+      SENDKIT_API_KEY: "${SENDKIT_API_KEY}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
       # MAIL_MAILER: smtp
       # MAIL_HOST: ""
       # MAIL_PORT: "587"
@@ -97,14 +99,16 @@ services:
       # LINKEDIN_CLIENT_SECRET: ""
       # X_CLIENT_ID: ""
       # X_CLIENT_SECRET: ""
-      # FACEBOOK_CLIENT_ID: ""
-      # FACEBOOK_CLIENT_SECRET: ""
+      FACEBOOK_CLIENT_ID: "${FACEBOOK_CLIENT_ID}"
+      FACEBOOK_CLIENT_SECRET: "${FACEBOOK_CLIENT_SECRET}"
+      FACEBOOK_CLIENT_REDIRECT: "${FACEBOOK_CLIENT_REDIRECT}"
       # INSTAGRAM_CLIENT_ID: ""
       # INSTAGRAM_CLIENT_SECRET: ""
       # THREADS_CLIENT_ID: ""
       # THREADS_CLIENT_SECRET: ""
-      # TIKTOK_CLIENT_ID: ""
-      # TIKTOK_CLIENT_SECRET: ""
+      TIKTOK_CLIENT_ID: "${TIKTOK_CLIENT_ID}"
+      TIKTOK_CLIENT_SECRET: "${TIKTOK_CLIENT_SECRET}"
+      TIKTOK_CLIENT_REDIRECT: "${TIKTOK_CLIENT_REDIRECT}"
       # PINTEREST_CLIENT_ID: ""
       # PINTEREST_CLIENT_SECRET: ""
       # GOOGLE_CLIENT_ID: ""             # YouTube + Google login
@@ -132,9 +136,9 @@ services:
     container_name: trypost-pgsql
     restart: unless-stopped
     environment:
-      POSTGRES_DB: trypost
-      POSTGRES_USER: trypost
-      POSTGRES_PASSWORD: trypost-password   # <- must match DB_PASSWORD above
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -169,12 +173,13 @@ services:
     restart: unless-stopped
     profiles: [proxy]
     environment:
-      APP_DOMAIN: post.example.com    # <- your domain
+      APP_DOMAIN: "${APP_DOMAIN}"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./legal:/srv/legal:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on:

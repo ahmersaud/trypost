@@ -32,3 +32,6 @@ yarn-error.log
 /.zed
 /docs/
 /.superpowers/
+
+# Production OAuth keys
+/passport-keys/
